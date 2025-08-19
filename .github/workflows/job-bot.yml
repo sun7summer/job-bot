@@ -4,7 +4,7 @@ on:
   schedule:
     # Every Monday 08:00 Asia/Taipei (UTC+8) == 00:00 UTC
     - cron: "0 0 * * 1"
-  workflow_dispatch: {}  # allow manual run
+  workflow_dispatch: {}  # allow manual run from the Actions tab
 
 jobs:
   run-bot:
@@ -14,6 +14,7 @@ jobs:
       WORKSHEET_NAME: Weekly_Role_Search
       KEYWORDS: "business intelligence, bi analyst, financial data analyst, power bi, sql, sap fi, finance transformation, rpa"
       MAX_TOTAL: "20"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,15 +28,13 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      # ✅ Safest way to write multi-line JSON from a secret
       - name: Write service account JSON from secret (safe)
-        env:
-          SA_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |
-          import os
-          sa = os.environ.get("SA_JSON","")
-          with open("service_account.json","w",encoding="utf-8") as f:
-            f.write(sa)
-          print("Wrote service_account.json")
+          cat > service_account.json << 'JSON'
+          ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          JSON
+
       - name: Run job bot
         run: |
           python bot.py
