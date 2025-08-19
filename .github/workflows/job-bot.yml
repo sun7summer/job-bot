@@ -1,0 +1,43 @@
+name: Weekly Job Bot
+
+on:
+  schedule:
+    # Every Monday 08:00 Asia/Taipei (UTC+8) == 00:00 UTC
+    - cron: "0 0 * * 1"
+  workflow_dispatch: {}  # allow manual run
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      WORKSHEET_NAME: Weekly_Role_Search
+      KEYWORDS: "business intelligence, bi analyst, financial data analyst, power bi, sql, sap fi, finance transformation, rpa"
+      MAX_TOTAL: "20"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Write service account JSON from secret (safe)
+        env:
+          SA_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python - << 'PY'
+import os, json
+sa = os.environ.get("SA_JSON","")
+open("service_account.json","w",encoding="utf-8").write(sa)
+print("Wrote service_account.json")
+PY
+
+      - name: Run job bot
+        run: |
+          python bot.py
