@@ -31,13 +31,11 @@ jobs:
         env:
           SA_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |
-          python - << 'PY'
-import os, json
-sa = os.environ.get("SA_JSON","")
-open("service_account.json","w",encoding="utf-8").write(sa)
-print("Wrote service_account.json")
-PY
-
+          import os
+          sa = os.environ.get("SA_JSON","")
+          with open("service_account.json","w",encoding="utf-8") as f:
+            f.write(sa)
+          print("Wrote service_account.json")
       - name: Run job bot
         run: |
           python bot.py
